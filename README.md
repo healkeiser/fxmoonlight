@@ -1,8 +1,52 @@
-# Moonlight Dashboard
+<div align="center">
 
-A workstation manager dashboard for [Apollo/Sunshine](https://github.com/LizardByte/Sunshine) and [Moonlight](https://moonlight-stream.org/) game streaming.
+  ![Logo](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/fxmoonlight/images/fxmoonlight_logo_background_dark.svg#gh-light-mode-only)
+  ![Logo](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/fxmoonlight/images/fxmoonlight_logo_background_light.svg#gh-dark-mode-only)
 
-![Dashboard Preview](static/icon.svg)
+  <h3 align="center">fxmoonlight</h3>
+
+  <p align="center">
+    A workstation manager dashboard for <a href="https://github.com/ClassicOldSong/Apollo">Apollo</a>/<a href="https://github.com/LizardByte/Sunshine">Sunshine</a> and <a href="https://moonlight-stream.org/">Moonlight</a> game streaming.
+    <br/><br/>
+    <a href="https://healkeiser.github.io/fxmoonlight"><strong>Documentation</strong></a>
+  </p>
+
+  ##
+
+  <p align="center">
+    <!-- Maintenance status -->
+    <img src="https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg?&label=Maintenance"> &nbsp;&nbsp;
+    <!-- <img src="https://img.shields.io/badge/maintenance-deprecated-red.svg?&label=Maintenance">&nbsp;&nbsp; -->
+    <!-- License -->
+    <img src="https://img.shields.io/github/license/healkeiser/fxmoonlight?&label=License"/> &nbsp;&nbsp;
+    <!-- Last Commit -->
+    <img src="https://img.shields.io/github/last-commit/healkeiser/fxmoonlight?logo=github&label=Last%20Commit" alt="Last Commit"> &nbsp;&nbsp;
+    <!-- Commit Activity -->
+    <a href="https://github.com/healkeiser/fxmoonlight/pulse" alt="Activity"><img src="https://img.shields.io/github/commit-activity/m/healkeiser/fxmoonlight?&logo=github&label=Commit%20Activity"></a> &nbsp;&nbsp;
+    <!-- GitHub stars -->
+    <img src="https://img.shields.io/github/stars/healkeiser/fxmoonlight" alt="GitHub Stars"/> &nbsp;&nbsp;
+  </p>
+
+</div>
+
+## Table of Contents
+
+- [Table of Contents](#table-of-contents)
+- [About](#about)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Client Setup](#client-setup)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Protocol Handler](#protocol-handler)
+- [Configuration](#configuration)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
+## About
+
+A workstation manager dashboard for [Apollo](https://github.com/ClassicOldSong/Apollo)/[Sunshine](https://github.com/LizardByte/Sunshine) and [Moonlight](https://moonlight-stream.org/) game streaming.
 
 ## Features
 
