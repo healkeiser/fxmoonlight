@@ -46,12 +46,15 @@
 - [Configuration](#configuration)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
+- [Contact](#contact)
 
 ## About
 
 A workstation manager dashboard for [Apollo](https://github.com/ClassicOldSong/Apollo)/[Sunshine](https://github.com/LizardByte/Sunshine) and [Moonlight](https://moonlight-stream.org/) game streaming.
 
-<img src="https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/screenshot.png" alt="Screenshot" style="border-radius: 5px;">
+<img src="https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/WCE4P0IdBK.png" alt="Screenshot" style="border-radius: 5px;">
+<img src="https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/af4sWF2VUe.png" alt="Screenshot" style="border-radius: 5px;">
+<img src="https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/SAbx542aYp.png" alt="Screenshot" style="border-radius: 5px;">
 
 ## Features
 
@@ -171,7 +174,8 @@ Run the dashboard in a container (Linux or Windows with Docker Desktop):
 
 The dashboard will be available at `http://localhost:5000`
 
-> **Note:** When running in Docker (Linux), local hardware detection via WMI is not available. Remote workstation detection via WinRM still works. You can manually edit workstation specs using the dashboard.
+> [!IMPORTANT]
+> When running in Docker (Linux), local hardware detection via WMI is not available. Remote workstation detection via [WinRM](#enabling-winrm-on-workstations) still works. You can manually edit workstation specs using the dashboard.
 
 ## Client Setup
 
@@ -427,3 +431,34 @@ If Moonlight is installed in a non-standard location, the path is embedded in th
 ## License
 
 MIT License
+
+## Contact
+
+Project Link: [fxmoonlight](https://github.com/healkeiser/fxmoonlight)
+
+<p align='center'>
+  <!-- GitHub profile -->
+  <a href="https://github.com/healkeiser">
+    <img src="https://img.shields.io/badge/healkeiser-181717?logo=github&style=social" alt="GitHub"/></a>&nbsp;&nbsp;
+  <!-- LinkedIn -->
+  <a href="https://www.linkedin.com/in/valentin-beaumont">
+    <img src="https://img.shields.io/badge/Valentin%20Beaumont-0A66C2?logo=linkedin&style=social" alt="LinkedIn"/></a>&nbsp;&nbsp;
+  <!-- Behance -->
+  <a href="https://www.behance.net/el1ven">
+    <img src="https://img.shields.io/badge/el1ven-1769FF?logo=behance&style=social" alt="Behance"/></a>&nbsp;&nbsp;
+  <!-- X -->
+  <a href="https://twitter.com/valentinbeaumon">
+    <img src="https://img.shields.io/badge/@valentinbeaumon-1DA1F2?logo=x&style=social" alt="Twitter"/></a>&nbsp;&nbsp;
+  <!-- Instagram -->
+  <a href="https://www.instagram.com/val.beaumontart">
+    <img src="https://img.shields.io/badge/@val.beaumontart-E4405F?logo=instagram&style=social" alt="Instagram"/></a>&nbsp;&nbsp;
+  <!-- Gumroad -->
+  <a href="https://healkeiser.gumroad.com/subscribe">
+    <img src="https://img.shields.io/badge/healkeiser-36a9ae?logo=gumroad&style=social" alt="Gumroad"/></a>&nbsp;&nbsp;
+  <!-- Gmail -->
+  <a href="mailto:valentin.onze@gmail.com">
+    <img src="https://img.shields.io/badge/valentin.onze@gmail.com-D14836?logo=gmail&style=social" alt="Email"/></a>&nbsp;&nbsp;
+  <!-- Buy me a coffee -->
+  <a href="https://www.buymeacoffee.com/healkeiser">
+    <img src="https://img.shields.io/badge/Buy Me A Coffee-FFDD00?&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee"/></a>&nbsp;&nbsp;
+</p>
