@@ -4,7 +4,6 @@ A web-based dashboard for managing remote workstations.
 """
 
 # Built-in
-import base64
 import concurrent.futures
 import json
 import os
@@ -363,15 +362,25 @@ def get_local_machine_info() -> dict[str, str | None]:
                     ram_gb_raw = ram_bytes / (1024**3)
                     # Round to nearest standard RAM size (8, 16, 32, 64, 128, 256, 512)
                     standard_sizes = [8, 16, 32, 64, 128, 256, 512]
-                    ram_gb = min(standard_sizes, key=lambda x: abs(x - ram_gb_raw))
+                    ram_gb = min(
+                        standard_sizes, key=lambda x: abs(x - ram_gb_raw)
+                    )
                     info["ram"] = f"{ram_gb}GB"
                     break
 
             # GPU from WMI - prioritize discrete GPUs
-            all_gpus = [gpu.Name for gpu in c.Win32_VideoController() if gpu.Name]
+            all_gpus = [
+                gpu.Name for gpu in c.Win32_VideoController() if gpu.Name
+            ]
 
             # Skip list: virtual adapters and basic drivers
-            skip_keywords = ["Microsoft", "Basic", "Parsec", "Virtual", "Remote"]
+            skip_keywords = [
+                "Microsoft",
+                "Basic",
+                "Parsec",
+                "Virtual",
+                "Remote",
+            ]
 
             # Priority list: discrete GPU brands/keywords (checked in order)
             priority_keywords = [
@@ -397,7 +406,8 @@ def get_local_machine_info() -> dict[str, str | None]:
             if not info["gpu"]:
                 for gpu_name in all_gpus:
                     if not any(
-                        skip.lower() in gpu_name.lower() for skip in skip_keywords
+                        skip.lower() in gpu_name.lower()
+                        for skip in skip_keywords
                     ):
                         info["gpu"] = gpu_name
                         break
