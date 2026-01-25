@@ -1,7 +1,7 @@
 <div align="center">
 
-  ![Logo](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/fxmoonlight/images/fxmoonlight_logo_background_dark.svg#gh-light-mode-only)
-  ![Logo](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/fxmoonlight/images/fxmoonlight_logo_background_light.svg#gh-dark-mode-only)
+  ![Logo](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/fxmoonlight_logo_background_dark.svg#gh-light-mode-only)
+  ![Logo](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/fxmoonlight_logo_background_light.svg#gh-dark-mode-only)
 
   <h3 align="center">fxmoonlight</h3>
 
