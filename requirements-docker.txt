@@ -1,0 +1,8 @@
+# Docker/Linux compatible requirements
+# Note: wmi is Windows-only and excluded here
+
+flask>=3.0.0
+ping3>=4.0.0
+psutil>=5.9.0
+pywinrm>=0.4.0
+waitress>=3.0.0

@@ -20,12 +20,20 @@ from flask import Flask, render_template, request, jsonify, Response
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get(
-    "SECRET_KEY", "moonlight-dashboard-secret-key"
+    "SECRET_KEY", "fxmoonlight-secret-key"
 )
 
-# File paths (internal, not user-configurable)
-DATA_FILE = "workstations.json"
-CONFIG_FILE = "config.json"
+# File paths (configurable via environment variables for Docker)
+DATA_FILE = os.environ.get("DATA_FILE", "workstations.json")
+CONFIG_FILE = os.environ.get("CONFIG_FILE", "config.json")
+
+# Optional WMI import (Windows-only)
+try:
+    import wmi
+
+    WMI_AVAILABLE = True
+except ImportError:
+    WMI_AVAILABLE = False
 
 
 def resolve_env_vars(obj: str | dict | list | Any) -> str | dict | list | Any:
@@ -471,15 +479,14 @@ def get_apollo_session(ip: str) -> tuple[ssl.SSLContext, str | None, str, int]:
     if apollo_user and apollo_password:
         try:
             login_url = f"https://{api_host}:{apollo_port}/api/login"
-            login_data = json.dumps({
-                "username": apollo_user,
-                "password": apollo_password
-            }).encode()
+            login_data = json.dumps(
+                {"username": apollo_user, "password": apollo_password}
+            ).encode()
             login_req = urllib.request.Request(
                 login_url,
                 data=login_data,
                 method="POST",
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json"},
             )
             with urllib.request.urlopen(
                 login_req, timeout=3, context=ctx
@@ -569,15 +576,14 @@ def get_machine_info_apollo(ip: str) -> dict[str, Any]:
         if apollo_user and apollo_password:
             try:
                 login_url = f"https://{api_host}:{apollo_port}/api/login"
-                login_data = json.dumps({
-                    "username": apollo_user,
-                    "password": apollo_password
-                }).encode()
+                login_data = json.dumps(
+                    {"username": apollo_user, "password": apollo_password}
+                ).encode()
                 login_req = urllib.request.Request(
                     login_url,
                     data=login_data,
                     method="POST",
-                    headers={"Content-Type": "application/json"}
+                    headers={"Content-Type": "application/json"},
                 )
                 with urllib.request.urlopen(
                     login_req, timeout=3, context=ctx
@@ -729,10 +735,9 @@ def index() -> str:
     workstations = data["workstations"]
 
     # Extract unique groups (sorted, with empty/None last)
-    groups = sorted(set(
-        ws.get("group", "") for ws in workstations
-        if ws.get("group")
-    ))
+    groups = sorted(
+        set(ws.get("group", "") for ws in workstations if ws.get("group"))
+    )
 
     # Group workstations by group
     grouped_workstations = {}
@@ -834,12 +839,18 @@ def discover_apollo_servers() -> Response:
 
     # Ensure integers with defaults
     try:
-        start_ip = int(start_ip) if start_ip is not None else network_config["scan_start"]
+        start_ip = (
+            int(start_ip)
+            if start_ip is not None
+            else network_config["scan_start"]
+        )
     except (ValueError, TypeError):
         start_ip = network_config["scan_start"]
 
     try:
-        end_ip = int(end_ip) if end_ip is not None else network_config["scan_end"]
+        end_ip = (
+            int(end_ip) if end_ip is not None else network_config["scan_end"]
+        )
     except (ValueError, TypeError):
         end_ip = network_config["scan_end"]
 
@@ -963,12 +974,9 @@ def get_workstation_clients(ip: str) -> Response:
         JSON response with clients list and count.
     """
     clients = get_paired_clients(ip)
-    return jsonify({
-        "success": True,
-        "ip": ip,
-        "clients": clients,
-        "count": len(clients)
-    })
+    return jsonify(
+        {"success": True, "ip": ip, "clients": clients, "count": len(clients)}
+    )
 
 
 @app.route("/api/ping/<ip>")

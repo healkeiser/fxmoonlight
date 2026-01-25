@@ -1,0 +1,20 @@
+services:
+  fxmoonlight:
+    build: .
+    container_name: fxmoonlight
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persist configuration and workstation data
+      - ./data:/data
+    environment:
+      # Optional: Set credentials via environment variables
+      - WINRM_USER=${WINRM_USER:-}
+      - WINRM_PASSWORD=${WINRM_PASSWORD:-}
+      - APOLLO_USER=${APOLLO_USER:-}
+      - APOLLO_PASSWORD=${APOLLO_PASSWORD:-}
+      # Flask session signing key
+      - SECRET_KEY=${SECRET_KEY:-fxmoonlight-secret-key}
+    # Optional: Use host network for easier discovery on local subnet
+    # network_mode: host

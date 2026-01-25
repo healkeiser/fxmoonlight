@@ -1,0 +1,32 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Local config (will be mounted as volume)
+config.json
+workstations.json
+data/
+
+# Documentation
+*.md
+LICENSE
+docs/
+
+# Windows service scripts
+scripts/
+
+# Images (not needed at runtime)
+images/

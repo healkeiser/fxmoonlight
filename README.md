@@ -137,6 +137,42 @@ To uninstall:
 .\scripts\Uninstall-MoonlightDashboardService.ps1
 ```
 
+### Docker
+
+Run the dashboard in a container (Linux or Windows with Docker Desktop):
+
+1. **Using Docker Compose** (recommended)
+   ```bash
+   # Create data directory for persistence
+   mkdir data
+
+   # Copy and configure
+   cp config.example.json data/config.json
+   # Edit data/config.json with your settings
+
+   # Start the container
+   docker compose up -d
+   ```
+
+2. **Using Docker directly**
+   ```bash
+   # Build the image
+   docker build -t fxmoonlight .
+
+   # Run the container
+   docker run -d \
+     --name fxmoonlight \
+     -p 5000:5000 \
+     -v $(pwd)/data:/data \
+     -e WINRM_PASSWORD=your-password \
+     -e APOLLO_PASSWORD=your-password \
+     fxmoonlight
+   ```
+
+The dashboard will be available at `http://localhost:5000`
+
+> **Note:** When running in Docker (Linux), local hardware detection via WMI is not available. Remote workstation detection via WinRM still works. You can manually edit workstation specs using the dashboard.
+
 ## Client Setup
 
 1. Open the dashboard in your browser
@@ -187,26 +223,29 @@ Grouped workstations appear under collapsible headers with counts.
 ## Project Structure
 
 ```
-moonlight-dashboard/
-├── app.py                 # Flask backend
-├── requirements.txt       # Python dependencies
-├── config.example.json    # Configuration template (copy to config.json)
-├── config.json            # Your config with credentials (gitignored)
-├── workstations.json      # Workstation data storage (gitignored)
+fxmoonlight/
+├── app.py                   # Flask backend
+├── requirements.txt         # Python dependencies
+├── requirements-docker.txt  # Docker-compatible dependencies (no WMI)
+├── Dockerfile               # Docker image definition
+├── docker-compose.yml       # Docker Compose configuration
+├── config.example.json      # Configuration template (copy to config.json)
+├── config.json              # Your config with credentials (gitignored)
+├── workstations.json        # Workstation data storage (gitignored)
 ├── templates/
-│   ├── index.html         # Main page layout
-│   └── components/        # Reusable UI components
+│   ├── index.html           # Main page layout
+│   └── components/          # Reusable UI components
 │       ├── workstation-card.html   # Workstation card
 │       ├── modal-setup.html        # Setup/pairing instructions
 │       ├── modal-discover.html     # Network discovery
 │       ├── modal-edit.html         # Edit workstation
 │       └── modal-confirm.html      # Confirmation dialogs
 ├── static/
-│   ├── icon.svg           # App icon (customizable)
+│   ├── icon.svg             # App icon (customizable)
 │   ├── css/
-│   │   └── main.css       # All styles (uses CSS variables for theming)
+│   │   └── main.css         # All styles (uses CSS variables for theming)
 │   └── js/
-│       └── app.js         # All JavaScript (API, discovery, forms)
+│       └── app.js           # All JavaScript (API, discovery, forms)
 └── scripts/
     ├── Install-MoonlightDashboardService.ps1   # Install as Windows Service
     ├── Uninstall-MoonlightDashboardService.ps1 # Remove Windows Service
@@ -324,6 +363,33 @@ For remote hardware detection to work, enable WinRM on each workstation:
 Enable-PSRemoting -Force
 Set-Item WSMan:\localhost\Client\TrustedHosts -Value "*" -Force
 ```
+
+### Entra ID / Intune Environments
+
+If your machines are managed by **Entra ID (Azure AD)** and **Intune**, you can deploy WinRM configuration across all workstations:
+
+1. **Enable WinRM via Intune** - Push a PowerShell script through Intune:
+   ```powershell
+   Enable-PSRemoting -Force -SkipNetworkProfileCheck
+   ```
+
+2. **Configure firewall** - Push a firewall rule allowing port 5985 (WinRM HTTP)
+
+3. **Shared admin account** - Use a local admin account deployed via Intune device configuration, or an Entra ID account with local admin rights on all machines
+
+4. **Credential format in config.json**:
+   ```json
+   "credentials": {
+     "winrm_user": "LocalAdminName",
+     "winrm_password": "${WINRM_PASSWORD}"
+   }
+   ```
+   Or for Entra ID accounts:
+   ```json
+   "winrm_user": "user@yourdomain.onmicrosoft.com"
+   ```
+
+> **Note:** For pure Entra ID joined machines (no hybrid AD), you may need to use a local admin account rather than cloud identities, as WinRM authentication with Entra-only accounts can require additional configuration.
 
 ### Moonlight Path
 
