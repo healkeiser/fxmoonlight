@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://healkeiser.github.io/fxmoonlight
+    about: Check the documentation for setup guides and configuration options.
+  - name: 💬 Discussions
+    url: https://github.com/healkeiser/fxmoonlight/discussions
+    about: Ask questions and discuss ideas with the community.

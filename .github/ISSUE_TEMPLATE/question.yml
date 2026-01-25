@@ -1,0 +1,51 @@
+name: ❓ Question
+description: Ask a question about setup, usage, or configuration
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? We're happy to help! Please check the [README](https://github.com/healkeiser/fxmoonlight#readme) first.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      description: What is your question about?
+      options:
+        - Installation / Setup
+        - Configuration
+        - WinRM / Hardware Detection
+        - Apollo / Sunshine Integration
+        - Moonlight Client / Protocol Handler
+        - Docker Deployment
+        - Windows Service
+        - Network / Discovery
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+      description: Describe any troubleshooting steps you've already taken.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other details that might help us answer your question.
+    validations:
+      required: false
