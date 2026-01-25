@@ -1,6 +1,6 @@
 {
   "site": {
-    "name": "Moonlight Dashboard",
+    "name": "fxmoonlight",
     "icon": "/static/icon.svg",
     "accent_color": "#fd4301",
     "accent_color_hover": "#e63d00"

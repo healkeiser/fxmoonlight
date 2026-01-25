@@ -51,6 +51,8 @@
 
 A workstation manager dashboard for [Apollo](https://github.com/ClassicOldSong/Apollo)/[Sunshine](https://github.com/LizardByte/Sunshine) and [Moonlight](https://moonlight-stream.org/) game streaming.
 
+![Screenshot](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/screenshot.png)
+
 ## Features
 
 - **Auto-Discovery**: Scan your network for Apollo/Sunshine servers
