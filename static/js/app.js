@@ -254,8 +254,9 @@ function testProtocolHandler() {
     const resultSpan = document.getElementById('testResult');
     resultSpan.innerHTML = '<span class="text-info">Opening Moonlight...</span>';
 
-    // Try to open a test URL
-    window.location.href = 'moonlight://test';
+    // Try to open a test URL - use localhost with a dummy app
+    // The handler expects: moonlight://connect/{ip}?app={appname}
+    window.location.href = 'moonlight://connect/127.0.0.1?app=Desktop';
 
     // After a moment, ask if it worked
     setTimeout(() => {
