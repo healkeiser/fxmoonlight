@@ -1,0 +1,96 @@
+{# Edit Workstation Modal Component #}
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Workstation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editWsId">
+
+                <!-- Name -->
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-control" id="editName" placeholder="Workstation name">
+                </div>
+
+                <!-- Group -->
+                <div class="mb-3">
+                    <label class="form-label">Group</label>
+                    <div class="d-flex gap-2">
+                        <select class="form-select" id="editGroup">
+                            <option value="">No group</option>
+                            {% for group in groups %}
+                            <option value="{{ group }}">{{ group }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="showNewGroupInput()" title="Create new group">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2 mt-2 d-none" id="newGroupInput">
+                        <input type="text" class="form-control" id="newGroupName" placeholder="New group name">
+                        <button class="btn btn-success btn-sm" type="button" onclick="addNewGroup()">
+                            <i class="bi bi-check"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="hideNewGroupInput()">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- IP (read-only) -->
+                <div class="mb-3">
+                    <label class="form-label">IP Address</label>
+                    <input type="text" class="form-control" id="editIp" readonly>
+                    <small class="text-muted">IP cannot be changed</small>
+                </div>
+
+                <!-- Hardware Specs -->
+                <div class="mb-3">
+                    <label class="form-label">GPU</label>
+                    <input type="text" class="form-control" id="editGpu" placeholder="e.g., NVIDIA GeForce RTX 4090">
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">RAM</label>
+                        <select class="form-select" id="editRam">
+                            <option value="">Unknown</option>
+                            <option value="8GB">8GB</option>
+                            <option value="16GB">16GB</option>
+                            <option value="32GB">32GB</option>
+                            <option value="64GB">64GB</option>
+                            <option value="128GB">128GB</option>
+                            <option value="256GB">256GB</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">OS</label>
+                        <select class="form-select" id="editOs">
+                            <option value="">Unknown</option>
+                            <option value="Windows 11 Pro">Windows 11 Pro</option>
+                            <option value="Windows 11 Home">Windows 11 Home</option>
+                            <option value="Windows 10 Pro">Windows 10 Pro</option>
+                            <option value="Windows 10 Home">Windows 10 Home</option>
+                            <option value="Linux">Linux</option>
+                            <option value="macOS">macOS</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">CPU</label>
+                    <input type="text" class="form-control" id="editCpu" placeholder="e.g., AMD Ryzen 9 5950X">
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success btn-sm" onclick="saveWorkstation()">
+                    <i class="bi bi-check-lg me-1"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

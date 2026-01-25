@@ -1,0 +1,22 @@
+{# Confirmation Modal Component #}
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="confirmTitle">
+                    <i class="bi bi-question-circle me-2"></i>Confirm
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage" class="mb-0">Are you sure?</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" id="confirmCancel">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" id="confirmOk">
+                    <i class="bi bi-check-lg me-1"></i>Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,522 @@
+/**
+ * Moonlight Dashboard - Main Stylesheet
+ * Dark theme with customizable accent color
+ */
+
+/* ============================================
+   CSS Variables (Design Tokens)
+   ============================================ */
+:root {
+    /* Accent Colors (can be overridden via config) */
+    --accent-color: #fd4301;
+    --accent-color-hover: #e63d00;
+
+    /* Internal references */
+    --md-primary: var(--accent-color);
+    --md-primary-hover: var(--accent-color-hover);
+    --md-primary-muted: color-mix(in srgb, var(--accent-color) 15%, transparent);
+
+    /* Surface Colors */
+    --md-surface: #1e1e1e;
+    --md-surface-variant: #2d2d2d;
+    --md-surface-elevated: #383838;
+    --md-background: #121212;
+
+    /* Text Colors */
+    --md-on-surface: #e6e1e5;
+    --md-on-surface-variant: #cac4d0;
+
+    /* Border Colors */
+    --md-outline: #938f99;
+    --md-outline-variant: #49454f;
+
+    /* Semantic Colors */
+    --md-success: #4caf50;
+    --md-error: #f44336;
+
+    /* Border Radius */
+    --md-radius-sm: 4px;
+    --md-radius-md: 8px;
+    --md-radius-lg: 12px;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+    background: var(--md-background);
+    min-height: 100vh;
+    color: var(--md-on-surface);
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1;
+}
+
+.text-muted {
+    color: var(--md-on-surface-variant) !important;
+}
+
+/* ============================================
+   Navigation
+   ============================================ */
+.navbar {
+    background: var(--md-surface) !important;
+    border-bottom: 1px solid var(--md-outline-variant);
+}
+
+/* ============================================
+   Cards
+   ============================================ */
+.card {
+    background: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--md-radius-lg);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    border-color: var(--md-primary);
+}
+
+.card {
+    height: 100%;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card-title {
+    font-weight: 600;
+}
+
+.card-spacer {
+    flex: 1;
+    min-height: 0.5rem;
+}
+
+.card-actions {
+    margin-top: 0;
+}
+
+/* ============================================
+   Status Indicators
+   ============================================ */
+.status-online {
+    color: var(--md-success);
+}
+
+.status-offline {
+    color: var(--md-error);
+}
+
+/* ============================================
+   Buttons - Base
+   ============================================ */
+.btn {
+    border-radius: var(--md-radius-sm) !important;
+    font-weight: 500;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn:focus,
+.btn:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 2px var(--md-primary-muted) !important;
+}
+
+.btn-close:focus {
+    box-shadow: none !important;
+}
+
+/* ============================================
+   Buttons - Variants
+   ============================================ */
+
+/* Primary (Moonlight) */
+.btn-moonlight {
+    background: var(--md-primary) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-moonlight:hover {
+    background: var(--md-primary-hover) !important;
+    color: white !important;
+}
+
+/* Success */
+.btn-success {
+    background: var(--md-success) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-success:hover {
+    background: #43a047 !important;
+    color: white !important;
+}
+
+/* Secondary */
+.btn-secondary {
+    background: var(--md-surface-variant) !important;
+    border: 1px solid var(--md-outline) !important;
+    color: var(--md-on-surface) !important;
+}
+
+.btn-secondary:hover {
+    background: var(--md-surface-elevated) !important;
+    border-color: var(--md-on-surface) !important;
+    color: var(--md-on-surface) !important;
+}
+
+/* Outline variants */
+.btn-outline-light,
+.btn-outline-info,
+.btn-outline-secondary {
+    border-color: var(--md-outline) !important;
+    color: var(--md-on-surface-variant) !important;
+    background: transparent !important;
+}
+
+.btn-outline-light:hover,
+.btn-outline-info:hover,
+.btn-outline-secondary:hover {
+    background: var(--md-surface-variant) !important;
+    border-color: var(--md-on-surface) !important;
+    color: var(--md-on-surface) !important;
+}
+
+.btn-outline-primary {
+    border-color: var(--md-primary) !important;
+    color: var(--md-primary) !important;
+    background: transparent !important;
+}
+
+.btn-outline-primary:hover {
+    background: var(--md-primary-muted) !important;
+    border-color: var(--md-primary) !important;
+    color: var(--md-primary) !important;
+}
+
+.btn-outline-warning {
+    border-color: var(--md-outline) !important;
+    color: var(--md-on-surface-variant) !important;
+    background: transparent !important;
+}
+
+.btn-outline-warning:hover {
+    background: var(--md-surface-variant) !important;
+    border-color: var(--md-on-surface) !important;
+    color: var(--md-on-surface) !important;
+}
+
+.btn-outline-danger {
+    border-color: var(--md-outline) !important;
+    color: var(--md-on-surface-variant) !important;
+    background: transparent !important;
+}
+
+.btn-outline-danger:hover {
+    background: rgba(244, 67, 54, 0.15) !important;
+    border-color: var(--md-error) !important;
+    color: var(--md-error) !important;
+}
+
+/* ============================================
+   Button Groups
+   ============================================ */
+.btn-group > .btn {
+    border-radius: 0;
+}
+
+.btn-group > .btn:first-child {
+    border-top-left-radius: var(--md-radius-sm);
+    border-bottom-left-radius: var(--md-radius-sm);
+}
+
+.btn-group > .btn:last-child {
+    border-top-right-radius: var(--md-radius-sm);
+    border-bottom-right-radius: var(--md-radius-sm);
+}
+
+/* ============================================
+   Workstation Grid
+   ============================================ */
+.workstation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+/* ============================================
+   Workstation Groups
+   ============================================ */
+.workstation-group {
+    margin-bottom: 2rem;
+}
+
+.group-header {
+    font-weight: 600;
+    color: var(--md-on-surface);
+    border-bottom: 1px solid var(--md-outline-variant);
+    padding-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.group-header .badge {
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+/* ============================================
+   Badges
+   ============================================ */
+.badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: var(--md-radius-sm);
+}
+
+.specs-badge {
+    background: var(--md-primary-muted);
+    border: 1px solid rgba(253, 67, 1, 0.3);
+    color: var(--md-primary);
+}
+
+.app-badge {
+    background: rgba(76, 175, 80, 0.15);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    color: var(--md-success);
+}
+
+.server-badge {
+    background: rgba(33, 150, 243, 0.15);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    color: #64b5f6;
+    font-size: 0.65rem;
+    vertical-align: middle;
+}
+
+/* ============================================
+   Discovery Items
+   ============================================ */
+.discovery-item {
+    background: var(--md-surface-variant);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--md-radius-md);
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.discovery-item:hover {
+    border-color: var(--md-outline);
+}
+
+.discovery-item.selected {
+    border-color: var(--md-primary);
+    background: var(--md-primary-muted);
+}
+
+/* ============================================
+   Modals
+   ============================================ */
+.modal-content {
+    background: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--md-radius-lg);
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--md-outline-variant);
+}
+
+/* ============================================
+   Forms
+   ============================================ */
+.form-control,
+.form-select {
+    background: var(--md-surface-variant);
+    border: 1px solid var(--md-outline-variant);
+    color: var(--md-on-surface);
+    border-radius: var(--md-radius-sm);
+}
+
+.form-control:focus,
+.form-select:focus {
+    background: var(--md-surface-variant);
+    border-color: var(--md-primary);
+    box-shadow: 0 0 0 2px var(--md-primary-muted);
+    color: var(--md-on-surface);
+}
+
+.form-check-input {
+    background-color: var(--md-surface-variant);
+    border-color: var(--md-outline);
+    border-radius: var(--md-radius-sm);
+}
+
+.form-check-input:checked {
+    background-color: var(--md-primary);
+    border-color: var(--md-primary);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 2px var(--md-primary-muted);
+    border-color: var(--md-primary);
+}
+
+.form-label {
+    color: var(--md-on-surface-variant);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+/* ============================================
+   Alerts
+   ============================================ */
+.alert {
+    border-radius: var(--md-radius-md);
+    border: none;
+}
+
+.alert-info {
+    background: rgba(33, 150, 243, 0.15);
+    color: #64b5f6;
+}
+
+.alert-success {
+    background: rgba(76, 175, 80, 0.15);
+    color: #81c784;
+}
+
+.alert-warning {
+    background: rgba(255, 152, 0, 0.15);
+    color: #ffb74d;
+}
+
+.alert-danger {
+    background: rgba(244, 67, 54, 0.15);
+    color: #e57373;
+}
+
+/* ============================================
+   Utilities
+   ============================================ */
+pre {
+    background: var(--md-background) !important;
+    border-radius: var(--md-radius-md);
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+.pulse {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ============================================
+   Scrollbar
+   ============================================ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--md-surface);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--md-outline-variant);
+    border-radius: var(--md-radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--md-outline);
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+.footer {
+    background: var(--md-surface);
+    border-top: 1px solid var(--md-outline-variant);
+    margin-top: auto;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.footer a {
+    color: var(--md-on-surface-variant);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer a:hover {
+    color: var(--md-primary);
+}
+
+/* ============================================
+   Toasts
+   ============================================ */
+.toast {
+    background: var(--md-surface-elevated);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--md-radius-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.toast-header {
+    background: transparent;
+    border-bottom: 1px solid var(--md-outline-variant);
+    color: var(--md-on-surface);
+}
+
+.toast-body {
+    color: var(--md-on-surface-variant);
+}
+
+.toast.toast-error {
+    border-color: var(--md-error);
+}
+
+.toast.toast-error .toast-header {
+    color: var(--md-error);
+}
+
+.toast.toast-success {
+    border-color: var(--md-success);
+}
+
+.toast.toast-success .toast-header {
+    color: var(--md-success);
+}

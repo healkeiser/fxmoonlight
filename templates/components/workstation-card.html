@@ -1,0 +1,80 @@
+{# Workstation Card Component #}
+<div class="card" data-id="{{ ws.id }}" data-ws='{{ ws | tojson | e }}'>
+    <div class="card-body">
+        <!-- Header: Name, IP, Status -->
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+                <h5 class="card-title mb-1">
+                    {% if ws.os and 'Windows' in ws.os %}
+                    <i class="bi bi-windows me-2"></i>
+                    {% elif ws.os and 'Linux' in ws.os %}
+                    <i class="bi bi-ubuntu me-2"></i>
+                    {% elif ws.os and 'Mac' in ws.os %}
+                    <i class="bi bi-apple me-2"></i>
+                    {% else %}
+                    <i class="bi bi-pc-display me-2"></i>
+                    {% endif %}
+                    {{ ws.name }}
+                </h5>
+                <small class="text-muted">{{ ws.ip }}</small>
+                {% if ws.ip in server_ips %}
+                <span class="badge server-badge ms-2" title="This machine is running the dashboard">
+                    <i class="bi bi-house-fill me-1"></i>This Server
+                </span>
+                {% endif %}
+            </div>
+            <span class="status-indicator" data-ip="{{ ws.ip }}">
+                <i class="bi bi-circle-fill text-secondary"></i>
+            </span>
+        </div>
+
+        <!-- Specs Badges -->
+        <div class="mb-2">
+            <span class="badge specs-badge me-1">{{ ws.gpu or 'Unknown GPU' }}</span>
+            <span class="badge specs-badge">{{ ws.ram or '?' }} RAM</span>
+        </div>
+
+        <!-- App Buttons -->
+        <div class="d-grid gap-2">
+            {% if ws.apps %}
+            {% for app in ws.apps %}
+            <button onclick="launchMoonlight('{{ ws.ip }}', '{{ app }}')" class="btn btn-moonlight btn-sm">
+                {% if 'desktop' in app.lower() %}
+                <i class="bi bi-display"></i>
+                {% elif 'steam' in app.lower() %}
+                <i class="bi bi-steam"></i>
+                {% else %}
+                <i class="bi bi-play-fill"></i>
+                {% endif %}
+                {{ app }}
+            </button>
+            {% endfor %}
+            {% else %}
+            <!-- Fallback when no apps detected -->
+            <button onclick="launchMoonlight('{{ ws.ip }}', 'Desktop')" class="btn btn-moonlight btn-sm">
+                <i class="bi bi-display"></i> Desktop
+            </button>
+            <small class="text-muted text-center">No apps detected - click Refresh</small>
+            {% endif %}
+        </div>
+
+        <!-- Spacer to push action buttons to bottom -->
+        <div class="card-spacer"></div>
+
+        <!-- Action Buttons (always at bottom) -->
+        <div class="card-actions d-flex gap-2 pt-2">
+            <a href="https://{{ ws.ip }}:{{ apollo.port }}" target="_blank" class="btn btn-outline-secondary btn-sm flex-fill" title="Apollo Web UI">
+                <i class="bi bi-gear"></i>
+            </a>
+            <button class="btn btn-outline-warning btn-sm flex-fill" onclick="openEditModal(this.closest('.card'))" title="Edit workstation">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-outline-info btn-sm flex-fill" onclick="probeWorkstation('{{ ws.ip }}', '{{ ws.id }}')" title="Refresh info">
+                <i class="bi bi-arrow-repeat"></i>
+            </button>
+            <button class="btn btn-outline-danger btn-sm flex-fill" onclick="deleteWorkstation('{{ ws.id }}')" title="Delete">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+{
+  "site": {
+    "name": "Moonlight Dashboard",
+    "icon": "/static/icon.svg",
+    "accent_color": "#fd4301",
+    "accent_color_hover": "#e63d00"
+  },
+  "credentials": {
+    "winrm_user": "${WINRM_USER:-Administrator}",
+    "winrm_password": "${WINRM_PASSWORD}",
+    "apollo_user": "${APOLLO_USER}",
+    "apollo_password": "${APOLLO_PASSWORD}"
+  },
+  "network": {
+    "subnet": "192.168.1",
+    "scan_start": 1,
+    "scan_end": 254
+  },
+  "server_port": 5000,
+  "apollo_port": 47990,
+  "scan_timeout": 1
+}

@@ -1,0 +1,88 @@
+{# Setup Modal Component #}
+<div class="modal fade" id="setupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="bi bi-gear me-2"></i>Client Setup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">
+                    To launch streams directly from this dashboard, you need to install the
+                    <strong>Moonlight protocol handler</strong> on this computer.
+                </p>
+
+                <!-- Step 1: Download -->
+                <div class="card bg-darker border-secondary mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-1-circle me-2"></i>Download Handler</h6>
+                        <p class="card-text text-muted small">
+                            Download and run the registry file to enable <code>moonlight://</code> URLs.
+                        </p>
+                        <a href="/download/moonlight-handler.reg" class="btn btn-moonlight btn-sm">
+                            <i class="bi bi-download me-1"></i> Download moonlight-handler.reg
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Step 2: Install -->
+                <div class="card bg-darker border-secondary mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-2-circle me-2"></i>Install</h6>
+                        <p class="card-text text-muted small">
+                            Double-click the downloaded <code>.reg</code> file and confirm the import.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 3: Test -->
+                <div class="card bg-darker border-secondary mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-3-circle me-2"></i>Test Handler</h6>
+                        <p class="card-text text-muted small">
+                            Click below to test if the handler is working. Moonlight should open.
+                        </p>
+                        <button class="btn btn-outline-info btn-sm" onclick="testProtocolHandler()">
+                            <i class="bi bi-play me-1"></i> Test Protocol Handler
+                        </button>
+                        <span id="testResult" class="ms-2 small"></span>
+                    </div>
+                </div>
+
+                <!-- Pairing Instructions -->
+                <div class="card bg-darker border-secondary mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-link-45deg me-2"></i>Pairing Moonlight Clients</h6>
+                        <p class="card-text text-muted small mb-2">
+                            Each device running Moonlight must be paired with the host PC:
+                        </p>
+                        <ol class="small text-muted mb-0">
+                            <li>Open <strong>Moonlight</strong> on your client device (phone, tablet, PC, etc.)</li>
+                            <li>Your host PC should appear automatically. Tap/click on it.</li>
+                            <li>Moonlight will display a <strong>4-digit PIN</strong></li>
+                            <li>Open the <strong>Apollo/Sunshine Web UI</strong> on your host PC (gear icon on cards)</li>
+                            <li>Go to <strong>PIN</strong> tab and enter the code</li>
+                            <li>The client is now paired and can stream from that host</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Apollo Credentials -->
+                <div class="card bg-darker border-secondary">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-key me-2"></i>Apollo Credentials</h6>
+                        <p class="card-text text-muted small">
+                            To detect apps from Apollo/Sunshine servers, add your credentials to <code>config.json</code>.
+                            All servers must share the same username/password.
+                        </p>
+                        <pre class="small p-2 mb-0"><code>"apollo_user": "your_username",
+"apollo_password": "your_password"</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
