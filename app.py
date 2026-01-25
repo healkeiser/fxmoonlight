@@ -338,83 +338,82 @@ def get_local_machine_info() -> dict[str, str | None]:
         "cpu": None,
     }
 
-    try:
-        import wmi
+    if WMI_AVAILABLE:
+        try:
+            c = wmi.WMI()
 
-        c = wmi.WMI()
-
-        # OS info from WMI (e.g., "Microsoft Windows 11 Pro")
-        for os_info in c.Win32_OperatingSystem():
-            if os_info.Caption:
-                # Clean up the name
-                os_name = os_info.Caption.replace("Microsoft ", "")
-                info["os"] = os_name
-                break
-
-        # CPU info from WMI (e.g., "AMD Ryzen 9 7950X 16-Core Processor")
-        for cpu in c.Win32_Processor():
-            if cpu.Name:
-                info["cpu"] = cpu.Name.strip()
-                break
-
-        # RAM from WMI - round to nearest standard size
-        for cs in c.Win32_ComputerSystem():
-            if cs.TotalPhysicalMemory:
-                ram_bytes = int(cs.TotalPhysicalMemory)
-                ram_gb_raw = ram_bytes / (1024**3)
-                # Round to nearest standard RAM size (8, 16, 32, 64, 128, 256, 512)
-                standard_sizes = [8, 16, 32, 64, 128, 256, 512]
-                ram_gb = min(standard_sizes, key=lambda x: abs(x - ram_gb_raw))
-                info["ram"] = f"{ram_gb}GB"
-                break
-
-        # GPU from WMI - prioritize discrete GPUs
-        all_gpus = [gpu.Name for gpu in c.Win32_VideoController() if gpu.Name]
-
-        # Skip list: virtual adapters and basic drivers
-        skip_keywords = ["Microsoft", "Basic", "Parsec", "Virtual", "Remote"]
-
-        # Priority list: discrete GPU brands/keywords (checked in order)
-        priority_keywords = [
-            "NVIDIA",
-            "GeForce",
-            "RTX",
-            "GTX",
-            "Quadro",
-            "Radeon RX",
-            "Radeon Pro",
-        ]
-
-        # First pass: find priority discrete GPU
-        for priority in priority_keywords:
-            for gpu_name in all_gpus:
-                if priority.lower() in gpu_name.lower():
-                    info["gpu"] = gpu_name
-                    break
-            if info["gpu"]:
-                break
-
-        # Second pass: any GPU not in skip list
-        if not info["gpu"]:
-            for gpu_name in all_gpus:
-                if not any(
-                    skip.lower() in gpu_name.lower() for skip in skip_keywords
-                ):
-                    info["gpu"] = gpu_name
+            # OS info from WMI (e.g., "Microsoft Windows 11 Pro")
+            for os_info in c.Win32_OperatingSystem():
+                if os_info.Caption:
+                    # Clean up the name
+                    os_name = os_info.Caption.replace("Microsoft ", "")
+                    info["os"] = os_name
                     break
 
-        # Fallback: first GPU with a name
-        if not info["gpu"] and all_gpus:
-            info["gpu"] = all_gpus[0]
+            # CPU info from WMI (e.g., "AMD Ryzen 9 7950X 16-Core Processor")
+            for cpu in c.Win32_Processor():
+                if cpu.Name:
+                    info["cpu"] = cpu.Name.strip()
+                    break
 
-    except ImportError:
+            # RAM from WMI - round to nearest standard size
+            for cs in c.Win32_ComputerSystem():
+                if cs.TotalPhysicalMemory:
+                    ram_bytes = int(cs.TotalPhysicalMemory)
+                    ram_gb_raw = ram_bytes / (1024**3)
+                    # Round to nearest standard RAM size (8, 16, 32, 64, 128, 256, 512)
+                    standard_sizes = [8, 16, 32, 64, 128, 256, 512]
+                    ram_gb = min(standard_sizes, key=lambda x: abs(x - ram_gb_raw))
+                    info["ram"] = f"{ram_gb}GB"
+                    break
+
+            # GPU from WMI - prioritize discrete GPUs
+            all_gpus = [gpu.Name for gpu in c.Win32_VideoController() if gpu.Name]
+
+            # Skip list: virtual adapters and basic drivers
+            skip_keywords = ["Microsoft", "Basic", "Parsec", "Virtual", "Remote"]
+
+            # Priority list: discrete GPU brands/keywords (checked in order)
+            priority_keywords = [
+                "NVIDIA",
+                "GeForce",
+                "RTX",
+                "GTX",
+                "Quadro",
+                "Radeon RX",
+                "Radeon Pro",
+            ]
+
+            # First pass: find priority discrete GPU
+            for priority in priority_keywords:
+                for gpu_name in all_gpus:
+                    if priority.lower() in gpu_name.lower():
+                        info["gpu"] = gpu_name
+                        break
+                if info["gpu"]:
+                    break
+
+            # Second pass: any GPU not in skip list
+            if not info["gpu"]:
+                for gpu_name in all_gpus:
+                    if not any(
+                        skip.lower() in gpu_name.lower() for skip in skip_keywords
+                    ):
+                        info["gpu"] = gpu_name
+                        break
+
+            # Fallback: first GPU with a name
+            if not info["gpu"] and all_gpus:
+                info["gpu"] = all_gpus[0]
+
+        except Exception:
+            pass
+    else:
         # Fallback to platform module if WMI not available
         import platform
 
         info["os"] = f"{platform.system()} {platform.release()}"
         info["cpu"] = platform.processor() or None
-    except Exception:
-        pass
 
     return info
 
