@@ -53,7 +53,9 @@
 A workstation manager dashboard for [Apollo](https://github.com/ClassicOldSong/Apollo)/[Sunshine](https://github.com/LizardByte/Sunshine) and [Moonlight](https://moonlight-stream.org/) game streaming.
 
 ![Screenshot](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/msedge_pQPX46xl9J.png)
+
 ![Screenshot](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/msedge_hVYIZnANVJ.png)
+
 ![Screenshot](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/msedge_c4sZWXQLdb.png)
 
 ## Features
