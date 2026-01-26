@@ -17,7 +17,7 @@ venv/
 
 # Local config (will be mounted as volume)
 config.json
-workstations.json
+data.json
 data/
 
 # Documentation

@@ -1,0 +1,55 @@
+{# Uninstall Modal Component #}
+<div class="modal fade" id="uninstallModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="bi bi-trash me-2"></i>Uninstall Protocol Handler</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">
+                    To remove the <strong>Moonlight protocol handler</strong> from this computer,
+                    follow these steps:
+                </p>
+
+                <!-- Option 1: Registry file -->
+                <div class="card bg-darker border-secondary mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-1-circle me-2"></i>Automatic Removal (Recommended)</h6>
+                        <p class="card-text text-muted small">
+                            Download and run this registry file to remove the <code>moonlight://</code> protocol handler.
+                        </p>
+                        <a href="/download/moonlight-handler-uninstall.reg" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-download me-1"></i> Download moonlight-handler-uninstall.reg
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Option 2: Manual -->
+                <div class="card bg-darker border-secondary mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-2-circle me-2"></i>Manual Removal</h6>
+                        <p class="card-text text-muted small mb-2">
+                            Alternatively, you can manually remove the registry keys:
+                        </p>
+                        <ol class="small text-muted mb-2">
+                            <li>Press <kbd>Win</kbd> + <kbd>R</kbd> and type <code>regedit</code></li>
+                            <li>Navigate to <code>HKEY_CURRENT_USER\Software\Classes</code></li>
+                            <li>Delete the <code>moonlight</code> folder</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Warning -->
+                <div class="alert alert-warning small mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    After uninstalling, you will no longer be able to launch Moonlight streams directly from this dashboard.
+                    You can reinstall anytime using the Setup button.
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

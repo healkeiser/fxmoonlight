@@ -52,20 +52,22 @@
 
 A workstation manager dashboard for [Apollo](https://github.com/ClassicOldSong/Apollo)/[Sunshine](https://github.com/LizardByte/Sunshine) and [Moonlight](https://moonlight-stream.org/) game streaming.
 
-<img src="https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/WCE4P0IdBK.png" alt="Screenshot" style="border-radius: 5px;">
-<img src="https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/af4sWF2VUe.png" alt="Screenshot" style="border-radius: 5px;">
-<img src="https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/SAbx542aYp.png" alt="Screenshot" style="border-radius: 5px;">
+![Screenshot](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/msedge_pQPX46xl9J.png)
+![Screenshot](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/msedge_hVYIZnANVJ.png)
+![Screenshot](https://raw.githubusercontent.com/healkeiser/fxmoonlight/main/images/msedge_c4sZWXQLdb.png)
 
 ## Features
 
-- **Auto-Discovery**: Scan your network for Apollo/Sunshine servers
+- **Auto-Discovery**: Scan your network for Apollo/Sunshine servers (supports multiple ports)
 - **Hardware Detection**: Automatically retrieve GPU, CPU, RAM, and OS info via WMI/WinRM
 - **App Detection**: Fetch available apps from Apollo servers
 - **One-Click Streaming**: Launch Moonlight streams directly from the dashboard
-- **Workstation Groups**: Organize machines into custom groups
+- **Workstation Groups**: Organize machines into collapsible groups with custom icons
+- **Icon Picker**: Visual icon selector for group customization
 - **Edit Workstations**: Manually update machine specs and metadata
-- **Customizable Theme**: Configure site name, icon, and accent colors
+- **Customizable Theme**: Configure site name, icon, and accent colors (auto-adjusting text contrast)
 - **Windows Service**: Run as a background service with automatic startup
+- **Docker Support**: Run in containers on Linux or Windows
 
 ## Requirements
 
@@ -219,10 +221,14 @@ Each workstation card displays:
 Organize workstations by assigning them to groups:
 
 1. Click the **pencil** button on a workstation card
-2. Select an existing group or create a new one
+2. Select an existing group or create a new one (with custom icon)
 3. Save changes
 
-Grouped workstations appear under collapsible headers with counts.
+**Group features:**
+- Collapsible headers with workstation counts
+- Custom icons via the visual icon picker
+- Click the pencil icon on group headers to change icons
+- Groups are automatically sorted and displayed with their icons
 
 ## Project Structure
 
@@ -235,15 +241,17 @@ fxmoonlight/
 ├── docker-compose.yml       # Docker Compose configuration
 ├── config.example.json      # Configuration template (copy to config.json)
 ├── config.json              # Your config with credentials (gitignored)
-├── workstations.json        # Workstation data storage (gitignored)
+├── data.json                # Workstations and groups data (gitignored)
 ├── templates/
 │   ├── index.html           # Main page layout
 │   └── components/          # Reusable UI components
 │       ├── workstation-card.html   # Workstation card
 │       ├── modal-setup.html        # Setup/pairing instructions
+│       ├── modal-uninstall.html    # Uninstall instructions
 │       ├── modal-discover.html     # Network discovery
 │       ├── modal-edit.html         # Edit workstation
-│       └── modal-confirm.html      # Confirmation dialogs
+│       ├── modal-confirm.html      # Confirmation dialogs
+│       └── icon-picker.html        # Icon picker for groups
 ├── static/
 │   ├── icon.svg             # App icon (customizable)
 │   ├── css/
@@ -279,7 +287,7 @@ Copy `config.example.json` to `config.json` and configure:
 ```json
 {
   "site": {
-    "name": "Moonlight Dashboard",
+    "name": "fxmoonlight",
     "icon": "/static/icon.svg",
     "accent_color": "#fd4301",
     "accent_color_hover": "#e63d00"
@@ -287,7 +295,7 @@ Copy `config.example.json` to `config.json` and configure:
   "credentials": {
     "winrm_user": "${WINRM_USER:-Administrator}",
     "winrm_password": "${WINRM_PASSWORD}",
-    "apollo_user": "${APOLLO_USER:-admin}",
+    "apollo_user": "${APOLLO_USER}",
     "apollo_password": "${APOLLO_PASSWORD}"
   },
   "network": {
@@ -296,7 +304,7 @@ Copy `config.example.json` to `config.json` and configure:
     "scan_end": 254
   },
   "server_port": 5000,
-  "apollo_port": 47990,
+  "apollo_ports": [47990, 48989, 47980, 46990],
   "scan_timeout": 1
 }
 ```
@@ -311,7 +319,7 @@ Copy `config.example.json` to `config.json` and configure:
 | `apollo_user/password` | Apollo/Sunshine web UI credentials for API access |
 | `network.*` | Default subnet and range for discovery scans |
 | `server_port` | Dashboard server port (default: 5000) |
-| `apollo_port` | Apollo/Sunshine API port (default: 47990) |
+| `apollo_ports` | Apollo/Sunshine API ports to scan (array, tries each in order) |
 | `scan_timeout` | Socket timeout in seconds for network scans (default: 1) |
 
 ### Apollo Authentication
@@ -329,12 +337,24 @@ The dashboard uses session-based authentication with Apollo/Sunshine. Configure 
 
 ### Environment Variables
 
-For security, **passwords can be stored in environment variables** instead of the config file. Use the `${VAR}` syntax:
+For security, **passwords can be stored in environment variables** instead of the config file. Use the `${VAR}` syntax in config.json:
 
 | Syntax | Behavior |
 |--------|----------|
 | `${VAR}` | Replaced with env var value (empty string if not set) |
 | `${VAR:-default}` | Use env var value, or `default` if not set |
+
+**Available environment variables:**
+
+| Variable | Purpose |
+|----------|---------|
+| `WINRM_USER` | WinRM username for remote hardware detection |
+| `WINRM_PASSWORD` | WinRM password |
+| `APOLLO_USER` | Apollo/Sunshine web UI username |
+| `APOLLO_PASSWORD` | Apollo/Sunshine web UI password |
+| `FXMOONLIGHT_SECRET_KEY` | Flask session signing key (optional, auto-generated if not set) |
+| `FXMOONLIGHT_CONFIG_FILE` | Path to config.json (default: `config.json`) |
+| `FXMOONLIGHT_DATA_FILE` | Path to data.json (default: `data.json`) |
 
 **Setting environment variables (PowerShell):**
 
@@ -412,10 +432,11 @@ If Moonlight is installed in a non-standard location, the path is embedded in th
 - Try the URL directly: `moonlight://connect/YOUR_IP?app=Desktop`
 
 ### "Discovery not finding machines"
-- Ensure Apollo/Sunshine is running (default port: 47990)
-- Check firewall rules allow traffic on the Apollo port
+- Ensure Apollo/Sunshine is running (default ports: 47990, 48989, 47980, 46990)
+- Check firewall rules allow traffic on the Apollo ports
 - Verify the target machines are on the expected subnet
 - Try increasing `scan_timeout` in config.json for slower networks
+- Check that `apollo_ports` in config.json includes the port your servers use
 
 ### "Hardware info incorrect or missing"
 - Local machine: Uses WMI directly (most accurate)

@@ -13,7 +13,7 @@ Store passwords in environment variables instead of `config.json`:
   "credentials": {
     "winrm_user": "${WINRM_USER:-Administrator}",
     "winrm_password": "${WINRM_PASSWORD}",
-    "apollo_user": "${APOLLO_USER:-admin}",
+    "apollo_user": "${APOLLO_USER}",
     "apollo_password": "${APOLLO_PASSWORD}"
   }
 }
@@ -40,16 +40,16 @@ nssm set MoonlightDashboard AppEnvironmentExtra WINRM_PASSWORD=secret APOLLO_PAS
 - The dashboard binds to `0.0.0.0` by default (all interfaces)
 - Consider using a reverse proxy (nginx, Caddy) with HTTPS for production
 - Firewall rules should limit access to the dashboard port (default: `5000`)
-- WinRM (port `5985`) and Apollo (port 47990) traffic should be restricted to trusted networks
+- WinRM (port `5985`) and Apollo (ports `47990`, `48989`, `47980`, `46990`, or whichever ports you configure) traffic should be restricted to trusted networks
 
 ## Files
 
 | File | Sensitivity | Notes |
 |------|-------------|-------|
 | `config.json` | 🔴 High | May contain passwords - gitignored |
-| `workstations.json` | 🟡 Medium | Contains IP addresses - gitignored |
+| `data.json` | 🟡 Medium | Contains IP addresses - gitignored |
 | `config.example.json` | 🟢 Low | Template only, no real credentials |
 
 ## Reporting Vulnerabilities
 
-If you discover a security vulnerability, please open a private issue or contact the maintainer directly rather than disclosing publicly.
+If you discover a security vulnerability, please open a private issue or contact [me](https://github.com/healkeiser) directly rather than disclosing publicly.

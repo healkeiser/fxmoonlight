@@ -17,6 +17,6 @@
     "scan_end": 254
   },
   "server_port": 5000,
-  "apollo_port": 47990,
+  "apollo_ports": [47990, 48989, 47980, 46990],
   "scan_timeout": 1
 }

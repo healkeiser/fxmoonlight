@@ -27,8 +27,8 @@ RUN mkdir -p /data
 
 # Environment variables
 ENV PYTHONUNBUFFERED=1
-ENV CONFIG_FILE=/data/config.json
-ENV DATA_FILE=/data/workstations.json
+ENV FXMOONLIGHT_CONFIG_FILE=/data/config.json
+ENV FXMOONLIGHT_DATA_FILE=/data/data.json
 
 # Expose the default port
 EXPOSE 5000

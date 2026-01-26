@@ -8,6 +8,193 @@
    ============================================ */
 let discoveredWorkstations = [];
 let selectedForImport = new Set();
+let iconPickerResolve = null;
+
+/* ============================================
+   Color Utilities
+   ============================================ */
+
+/**
+ * Parse a color string (hex or rgb) to RGB values
+ * @param {string} color - Color in hex (#rgb, #rrggbb) or rgb(r, g, b) format
+ * @returns {{r: number, g: number, b: number}|null} RGB values (0-255) or null if invalid
+ */
+function parseColor(color) {
+    // Handle hex colors
+    if (color.startsWith('#')) {
+        let hex = color.slice(1);
+        // Expand shorthand (#rgb -> #rrggbb)
+        if (hex.length === 3) {
+            hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        }
+        if (hex.length === 6) {
+            return {
+                r: parseInt(hex.slice(0, 2), 16),
+                g: parseInt(hex.slice(2, 4), 16),
+                b: parseInt(hex.slice(4, 6), 16)
+            };
+        }
+    }
+    // Handle rgb() colors
+    const rgbMatch = color.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+    if (rgbMatch) {
+        return {
+            r: parseInt(rgbMatch[1], 10),
+            g: parseInt(rgbMatch[2], 10),
+            b: parseInt(rgbMatch[3], 10)
+        };
+    }
+    return null;
+}
+
+/**
+ * Calculate the relative luminance of a color (WCAG formula)
+ * @param {{r: number, g: number, b: number}} rgb - RGB values (0-255)
+ * @returns {number} Relative luminance (0-1)
+ */
+function getLuminance(rgb) {
+    const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(c => {
+        c = c / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * Determine if a color is light (needs dark text) or dark (needs light text)
+ * @param {string} color - Color in hex or rgb format
+ * @returns {boolean} True if the color is light
+ */
+function isLightColor(color) {
+    const rgb = parseColor(color);
+    if (!rgb) return false;
+    // Threshold of 0.179 is based on WCAG contrast guidelines
+    return getLuminance(rgb) > 0.179;
+}
+
+/**
+ * Set the accent text color CSS variable based on accent color luminance
+ */
+function updateAccentTextColor() {
+    const accentColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--accent-color').trim();
+
+    const textColor = isLightColor(accentColor) ? '#000000' : '#ffffff';
+    document.documentElement.style.setProperty('--accent-text-color', textColor);
+}
+
+/* ============================================
+   Icon Picker
+   ============================================ */
+
+// Curated list of relevant Bootstrap Icons for workstation groups
+const AVAILABLE_ICONS = [
+    // Devices
+    'bi-pc-display-horizontal', 'bi-pc-display', 'bi-laptop', 'bi-display',
+    'bi-gpu-card', 'bi-cpu', 'bi-motherboard', 'bi-device-hdd', 'bi-device-ssd',
+    'bi-server', 'bi-hdd-rack', 'bi-hdd-network', 'bi-router',
+    // Categories
+    'bi-folder', 'bi-folder2', 'bi-folder2-open', 'bi-collection',
+    'bi-grid', 'bi-grid-3x3', 'bi-layers', 'bi-stack',
+    // Gaming
+    'bi-controller', 'bi-joystick', 'bi-headset-vr', 'bi-dice-5',
+    // Creative
+    'bi-brush', 'bi-palette', 'bi-easel', 'bi-camera-reels', 'bi-film',
+    'bi-music-note-beamed', 'bi-vinyl', 'bi-image',
+    // Development
+    'bi-code-square', 'bi-code-slash', 'bi-terminal', 'bi-bug', 'bi-git',
+    'bi-braces', 'bi-filetype-py', 'bi-filetype-js',
+    // Office / Work
+    'bi-building', 'bi-buildings', 'bi-briefcase', 'bi-clipboard-data',
+    'bi-graph-up', 'bi-kanban', 'bi-calendar-event',
+    // Location
+    'bi-house', 'bi-house-door', 'bi-geo-alt', 'bi-pin-map', 'bi-globe',
+    // Cloud / Network
+    'bi-cloud', 'bi-cloud-upload', 'bi-cloud-download', 'bi-database',
+    'bi-hdd-stack', 'bi-box-seam', 'bi-archive',
+    // Education
+    'bi-mortarboard', 'bi-book', 'bi-journal-code', 'bi-lightbulb',
+    // Tools
+    'bi-tools', 'bi-wrench', 'bi-gear', 'bi-sliders', 'bi-hammer',
+    // People
+    'bi-person', 'bi-people', 'bi-person-workspace',
+    // Misc
+    'bi-star', 'bi-heart', 'bi-lightning', 'bi-fire', 'bi-snow',
+    'bi-cup-hot', 'bi-rocket-takeoff', 'bi-shield-check', 'bi-key',
+    'bi-lock', 'bi-eye', 'bi-bullseye', 'bi-award', 'bi-trophy'
+];
+
+/**
+ * Show the icon picker modal and return the selected icon
+ * @param {string} currentIcon - Currently selected icon class
+ * @returns {Promise<string|null>} Selected icon class or null if cancelled
+ */
+function showIconPicker(currentIcon = 'bi-folder') {
+    return new Promise((resolve) => {
+        iconPickerResolve = resolve;
+
+        const grid = document.getElementById('iconPickerGrid');
+        const searchInput = document.getElementById('iconSearchInput');
+
+        // Render icons
+        renderIconGrid(AVAILABLE_ICONS, currentIcon);
+
+        // Setup search
+        searchInput.value = '';
+        searchInput.oninput = () => {
+            const query = searchInput.value.toLowerCase();
+            const filtered = AVAILABLE_ICONS.filter(icon =>
+                icon.toLowerCase().includes(query)
+            );
+            renderIconGrid(filtered, currentIcon);
+        };
+
+        const modalEl = document.getElementById('iconPickerModal');
+        const modal = new bootstrap.Modal(modalEl);
+
+        // Handle cancel
+        const handleHidden = () => {
+            modalEl.removeEventListener('hidden.bs.modal', handleHidden);
+            if (iconPickerResolve) {
+                iconPickerResolve(null);
+                iconPickerResolve = null;
+            }
+        };
+        modalEl.addEventListener('hidden.bs.modal', handleHidden);
+
+        modal.show();
+        searchInput.focus();
+    });
+}
+
+/**
+ * Render the icon grid
+ * @param {string[]} icons - Array of icon classes to display
+ * @param {string} selected - Currently selected icon
+ */
+function renderIconGrid(icons, selected) {
+    const grid = document.getElementById('iconPickerGrid');
+    grid.innerHTML = icons.map(icon => `
+        <div class="icon-picker-item ${icon === selected ? 'selected' : ''}"
+             data-icon="${icon}"
+             onclick="selectIcon('${icon}')"
+             title="${icon.replace('bi-', '')}">
+            <i class="bi ${icon}"></i>
+        </div>
+    `).join('');
+}
+
+/**
+ * Handle icon selection
+ * @param {string} icon - Selected icon class
+ */
+function selectIcon(icon) {
+    if (iconPickerResolve) {
+        iconPickerResolve(icon);
+        iconPickerResolve = null;
+    }
+    bootstrap.Modal.getInstance(document.getElementById('iconPickerModal')).hide();
+}
 
 /* ============================================
    Toast Notifications
@@ -155,10 +342,16 @@ async function putJSON(url, data) {
  * Launch a Moonlight stream with proper URL encoding
  * @param {string} ip - Host IP address
  * @param {string} app - Application name to stream
+ * @param {number} [port] - Optional Apollo port (for multi-instance setups)
  */
-function launchMoonlight(ip, app) {
+function launchMoonlight(ip, app, port) {
     showToast('Launching', `Connecting to ${app}...`, 'info', 3000);
-    const url = `moonlight://connect/${ip}?app=${encodeURIComponent(app)}`;
+    let url;
+    if (port) {
+        url = `moonlight://connect/${ip}?port=${port}&app=${encodeURIComponent(app)}`;
+    } else {
+        url = `moonlight://connect/${ip}?app=${encodeURIComponent(app)}`;
+    }
     window.location.href = url;
 }
 
@@ -207,7 +400,7 @@ async function probeWorkstation(ip, id) {
 
         if (data.apollo_online) {
             const updateData = {};
-            if (data.apps) updateData.apps = data.apps;
+            if (data.apollo_instances) updateData.apollo_instances = data.apollo_instances;
             if (data.hostname) updateData.hostname = data.hostname;
             if (data.gpu) updateData.gpu = data.gpu;
             if (data.ram) updateData.ram = data.ram;
@@ -351,9 +544,21 @@ function createDiscoveryItemHTML(ws, idx) {
         .map(s => `<span class="badge specs-badge me-1">${s}</span>`)
         .join('') || '<span class="text-muted">Specs unknown</span>';
 
-    const appsHtml = ws.apps && ws.apps.length
-        ? ws.apps.map(a => `<span class="badge app-badge me-1">${a}</span>`).join('')
-        : '';
+    // Handle both new apollo_instances format and legacy apps format
+    let appsHtml = '';
+    if (ws.apollo_instances && ws.apollo_instances.length) {
+        // New format: show instance count and all apps
+        const instanceCount = ws.apollo_instances.length;
+        if (instanceCount > 1) {
+            appsHtml = `<span class="badge bg-info me-1">${instanceCount} displays</span>`;
+        }
+        // Collect all apps from all instances
+        const allApps = ws.apollo_instances.flatMap(inst => inst.apps);
+        appsHtml += allApps.map(a => `<span class="badge app-badge me-1">${a}</span>`).join('');
+    } else if (ws.apps && ws.apps.length) {
+        // Legacy format
+        appsHtml = ws.apps.map(a => `<span class="badge app-badge me-1">${a}</span>`).join('');
+    }
 
     return `
         <div class="discovery-item" data-idx="${idx}" onclick="toggleSelect(${idx})">
@@ -499,14 +704,54 @@ function showNewGroupInput() {
 function hideNewGroupInput() {
     document.getElementById('newGroupInput').classList.add('d-none');
     document.getElementById('newGroupName').value = '';
+    document.getElementById('newGroupIcon').value = 'bi-folder';
+    // Reset icon preview
+    const preview = document.getElementById('newGroupIconPreview');
+    preview.className = 'bi bi-folder';
 }
 
 /**
- * Add a new group to the select dropdown
+ * Open icon picker for new group
  */
-function addNewGroup() {
+async function pickNewGroupIcon() {
+    const currentIcon = document.getElementById('newGroupIcon').value;
+    const icon = await showIconPicker(currentIcon);
+    if (icon) {
+        document.getElementById('newGroupIcon').value = icon;
+        document.getElementById('newGroupIconPreview').className = `bi ${icon}`;
+    }
+}
+
+/**
+ * Edit an existing group's icon
+ * @param {string} groupName - Name of the group to edit
+ */
+async function editGroupIcon(groupName) {
+    // Get current icon from the header
+    const header = document.querySelector(`[data-group="${groupName}"]`);
+    const iconEl = header?.querySelector('.group-icon');
+    const currentIcon = iconEl?.className.match(/bi-[\w-]+/)?.[0] || 'bi-folder';
+
+    const icon = await showIconPicker(currentIcon);
+    if (icon) {
+        try {
+            await putJSON(`/api/groups/${encodeURIComponent(groupName)}`, { icon: icon });
+            showToast('Updated', `Icon updated for "${groupName}"`, 'success');
+            setTimeout(() => location.reload(), 800);
+        } catch (e) {
+            showToast('Error', 'Failed to update icon', 'error');
+        }
+    }
+}
+
+/**
+ * Add a new group to the select dropdown and save its icon
+ */
+async function addNewGroup() {
     const input = document.getElementById('newGroupName');
+    const iconSelect = document.getElementById('newGroupIcon');
     const groupName = input.value.trim();
+    const iconClass = iconSelect.value;
 
     if (!groupName) {
         showToast('Error', 'Please enter a group name', 'error');
@@ -524,6 +769,13 @@ function addNewGroup() {
         }
     }
 
+    // Save the group icon to the API
+    try {
+        await putJSON(`/api/groups/${encodeURIComponent(groupName)}`, { icon: iconClass });
+    } catch (e) {
+        console.warn('Could not save group icon:', e);
+    }
+
     // Add new option and select it
     const option = document.createElement('option');
     option.value = groupName;
@@ -538,7 +790,8 @@ function addNewGroup() {
    Initialization
    ============================================ */
 
-// Check status on page load
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    updateAccentTextColor();
     refreshStatus();
 });

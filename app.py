@@ -19,12 +19,12 @@ from flask import Flask, render_template, request, jsonify, Response
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get(
-    "SECRET_KEY", "fxmoonlight-secret-key"
+    "FXMOONLIGHT_SECRET_KEY", "fxmoonlight-secret-key"
 )
 
 # File paths (configurable via environment variables for Docker)
-DATA_FILE = os.environ.get("DATA_FILE", "workstations.json")
-CONFIG_FILE = os.environ.get("CONFIG_FILE", "config.json")
+DATA_FILE = os.environ.get("FXMOONLIGHT_DATA_FILE", "data.json")
+CONFIG_FILE = os.environ.get("FXMOONLIGHT_CONFIG_FILE", "config.json")
 
 # Optional WMI import (Windows-only)
 try:
@@ -92,7 +92,7 @@ def load_config() -> dict[str, Any]:
             "scan_end": 254,
         },
         "server_port": 5000,
-        "apollo_port": 47990,
+        "apollo_ports": [47990],
         "scan_timeout": 1,
     }
     if os.path.exists(CONFIG_FILE):
@@ -160,13 +160,35 @@ def get_server_port() -> int:
     return load_config().get("server_port", 5000)
 
 
-def get_apollo_port() -> int:
-    """Get Apollo API port from config.
+def get_apollo_ports() -> list[int]:
+    """Get Apollo API ports from config.
+
+    Supports both new 'apollo_ports' array and legacy 'apollo_port' single value.
 
     Returns:
-        Port number for Apollo/Sunshine API (default: 47990).
+        List of port numbers for Apollo/Sunshine API (default: [47990]).
     """
-    return load_config().get("apollo_port", 47990)
+    config = load_config()
+    # Support new apollo_ports array format
+    if "apollo_ports" in config:
+        ports = config["apollo_ports"]
+        if isinstance(ports, list):
+            return ports
+        return [ports]  # Single value provided as non-list
+    # Backward compatibility with old apollo_port single value
+    if "apollo_port" in config:
+        return [config["apollo_port"]]
+    return [47990]
+
+
+def get_primary_apollo_port() -> int:
+    """Get the primary (first) Apollo API port from config.
+
+    Returns:
+        Primary port number for Apollo/Sunshine API (default: 47990).
+    """
+    ports = get_apollo_ports()
+    return ports[0] if ports else 47990
 
 
 def get_scan_timeout() -> int:
@@ -284,23 +306,78 @@ def save_workstations(data: dict[str, list]) -> None:
         json.dump(data, f, indent=2)
 
 
-def check_apollo_port(ip: str) -> bool:
+def load_groups() -> dict[str, dict]:
+    """Load group metadata from data.json.
+
+    Returns:
+        Dictionary with 'groups' key containing group name to metadata mapping.
+        Returns empty dict if file doesn't exist or has no groups.
+    """
+    data = load_workstations()
+    return {"groups": data.get("groups", {})}
+
+
+def save_groups(groups_data: dict[str, dict]) -> None:
+    """Save group metadata to data.json.
+
+    Args:
+        groups_data: Dictionary with 'groups' key containing group metadata.
+    """
+    data = load_workstations()
+    data["groups"] = groups_data.get("groups", {})
+    save_workstations(data)
+
+
+def get_group_icon(group_name: str) -> str:
+    """Get the icon class for a group.
+
+    Args:
+        group_name: Name of the group.
+
+    Returns:
+        Bootstrap icon class string, defaults to 'bi-folder' if not set.
+    """
+    groups_data = load_groups()
+    group_info = groups_data.get("groups", {}).get(group_name, {})
+    return group_info.get("icon", "bi-folder")
+
+
+def check_apollo_port(ip: str, port: int | None = None) -> bool:
     """Check if Apollo port is open on the given IP.
+
+    Args:
+        ip: IP address to check.
+        port: Specific port to check. If None, uses primary configured port.
+
+    Returns:
+        True if Apollo port is reachable, False otherwise.
+    """
+    if port is None:
+        port = get_primary_apollo_port()
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(get_scan_timeout())
+        result = sock.connect_ex((ip, port))
+        sock.close()
+        return result == 0
+    except Exception:
+        return False
+
+
+def check_apollo_ports(ip: str) -> list[int]:
+    """Check which Apollo ports are open on the given IP.
 
     Args:
         ip: IP address to check.
 
     Returns:
-        True if Apollo port is reachable, False otherwise.
+        List of open Apollo ports.
     """
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(get_scan_timeout())
-        result = sock.connect_ex((ip, get_apollo_port()))
-        sock.close()
-        return result == 0
-    except Exception:
-        return False
+    open_ports = []
+    for port in get_apollo_ports():
+        if check_apollo_port(ip, port):
+            open_ports.append(port)
+    return open_ports
 
 
 def is_local_ip(ip: str) -> bool:
@@ -462,18 +539,21 @@ def get_machine_info_wmi(ip: str) -> dict[str, str | None]:
     return info
 
 
-def get_apollo_session(ip: str) -> tuple[ssl.SSLContext, str | None, str, int]:
+def get_apollo_session(
+    ip: str, port: int | None = None
+) -> tuple[ssl.SSLContext, str | None, str, int]:
     """Get an authenticated session for Apollo API calls.
 
     Args:
         ip: IP address of the Apollo server.
+        port: Specific port to use. If None, uses primary configured port.
 
     Returns:
         Tuple of (ssl_context, auth_cookie, api_host, port).
     """
     is_local = is_local_ip(ip)
     api_host = "localhost" if is_local else ip
-    apollo_port = get_apollo_port()
+    apollo_port = port if port is not None else get_primary_apollo_port()
 
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
@@ -512,11 +592,14 @@ def get_apollo_session(ip: str) -> tuple[ssl.SSLContext, str | None, str, int]:
     return ctx, auth_cookie, api_host, apollo_port
 
 
-def get_paired_clients(ip: str) -> list[dict[str, Any]]:
+def get_paired_clients(
+    ip: str, port: int | None = None
+) -> list[dict[str, Any]]:
     """Get list of paired Moonlight clients from Apollo.
 
     Args:
         ip: IP address of the Apollo server.
+        port: Specific port to use. If None, uses primary configured port.
 
     Returns:
         List of paired client dictionaries with name and uuid.
@@ -524,7 +607,7 @@ def get_paired_clients(ip: str) -> list[dict[str, Any]]:
     clients = []
 
     try:
-        ctx, auth_cookie, api_host, apollo_port = get_apollo_session(ip)
+        ctx, auth_cookie, api_host, apollo_port = get_apollo_session(ip, port)
 
         headers = {"Accept": "application/json"}
         if auth_cookie:
@@ -551,7 +634,7 @@ def get_paired_clients(ip: str) -> list[dict[str, Any]]:
     return clients
 
 
-def get_machine_info_apollo(ip: str) -> dict[str, Any]:
+def get_machine_info_apollo(ip: str, port: int | None = None) -> dict[str, Any]:
     """Get machine info from Apollo's API endpoints.
 
     Queries the Apollo/Sunshine API for hostname and available apps.
@@ -559,16 +642,24 @@ def get_machine_info_apollo(ip: str) -> dict[str, Any]:
 
     Args:
         ip: IP address of the Apollo server.
+        port: Specific port to use. If None, uses primary configured port.
 
     Returns:
-        Dictionary with hostname, gpu, ram, os, cpu, and apps keys.
+        Dictionary with hostname, gpu, ram, os, cpu, apps, and instance_name keys.
     """
-    info = {"hostname": None, "gpu": None, "ram": None, "os": None, "apps": []}
+    info = {
+        "hostname": None,
+        "gpu": None,
+        "ram": None,
+        "os": None,
+        "apps": [],
+        "instance_name": None,
+    }
 
     # Determine if this is the local machine
     is_local = is_local_ip(ip)
     api_host = "localhost" if is_local else ip
-    apollo_port = get_apollo_port()
+    apollo_port = port if port is not None else get_primary_apollo_port()
 
     # Get credentials for session-based auth
     creds = get_credentials()
@@ -660,6 +751,9 @@ def get_machine_info_apollo(ip: str) -> dict[str, Any]:
                 if isinstance(data, dict):
                     if "hostname" in data:
                         info["hostname"] = data["hostname"]
+                    # Get instance name from sunshine_name config
+                    if "sunshine_name" in data:
+                        info["instance_name"] = data["sunshine_name"]
                     if "env" in data and isinstance(data["env"], dict):
                         env = data["env"]
                         if "COMPUTERNAME" in env:
@@ -695,36 +789,58 @@ def get_machine_info_apollo(ip: str) -> dict[str, Any]:
 
 
 def scan_single_ip(ip: str) -> dict[str, Any] | None:
-    """Scan a single IP for Apollo server.
+    """Scan a single IP for Apollo servers on all configured ports.
 
-    Checks if Apollo port is open and retrieves machine info if found.
+    Checks all configured Apollo ports and retrieves machine info from each.
 
     Args:
         ip: IP address to scan.
 
     Returns:
-        Workstation dict if Apollo found, None otherwise.
+        Workstation dict with apollo_instances if any Apollo found, None otherwise.
     """
-    if check_apollo_port(ip):
-        info = get_machine_info_apollo(ip)
+    # Check all configured ports
+    open_ports = check_apollo_ports(ip)
 
-        # Try WMI for hardware specs if not already populated
-        if not info.get("gpu") or not info.get("ram"):
-            wmi_info = get_machine_info_wmi(ip)
-            for key, value in wmi_info.items():
-                if value and not info.get(key):
-                    info[key] = value
+    if not open_ports:
+        return None
 
-        return {
-            "ip": ip,
-            "hostname": info.get("hostname", f"UNKNOWN-{ip.split('.')[-1]}"),
-            "apps": info.get("apps", []),
-            "gpu": info.get("gpu"),
-            "ram": info.get("ram"),
-            "os": info.get("os", "Windows"),
-            "cpu": info.get("cpu"),
-        }
-    return None
+    # Gather info from the first responding port for machine-level data
+    first_info = get_machine_info_apollo(ip, open_ports[0])
+
+    # Try WMI for hardware specs if not already populated
+    if not first_info.get("gpu") or not first_info.get("ram"):
+        wmi_info = get_machine_info_wmi(ip)
+        for key, value in wmi_info.items():
+            if value and not first_info.get(key):
+                first_info[key] = value
+
+    # Build apollo_instances array with info from each port
+    apollo_instances = []
+    for port in open_ports:
+        port_info = (
+            get_machine_info_apollo(ip, port)
+            if port != open_ports[0]
+            else first_info
+        )
+        instance_name = port_info.get("instance_name") or f"Display ({port})"
+        apollo_instances.append(
+            {
+                "port": port,
+                "name": instance_name,
+                "apps": port_info.get("apps", []),
+            }
+        )
+
+    return {
+        "ip": ip,
+        "hostname": first_info.get("hostname", f"UNKNOWN-{ip.split('.')[-1]}"),
+        "apollo_instances": apollo_instances,
+        "gpu": first_info.get("gpu"),
+        "ram": first_info.get("ram"),
+        "os": first_info.get("os", "Windows"),
+        "cpu": first_info.get("cpu"),
+    }
 
 
 @app.route("/")
@@ -738,7 +854,7 @@ def index() -> str:
     site = get_site_config()
     network = get_network_config()
     apollo = {
-        "port": get_apollo_port(),
+        "port": get_primary_apollo_port(),
     }
 
     workstations = data["workstations"]
@@ -769,11 +885,16 @@ def index() -> str:
     except Exception:
         server_ips = []
 
+    # Load group icons
+    groups_data = load_groups()
+    group_icons = groups_data.get("groups", {})
+
     return render_template(
         "index.html",
         workstations=workstations,
         grouped_workstations=grouped_workstations if has_groups else None,
         groups=groups,
+        group_icons=group_icons,
         site=site,
         network=network,
         apollo=apollo,
@@ -825,6 +946,38 @@ def delete_workstation(ws_id: str) -> Response:
         ws for ws in data["workstations"] if ws["id"] != ws_id
     ]
     save_workstations(data)
+    return jsonify({"success": True})
+
+
+@app.route("/api/groups", methods=["GET"])
+def get_groups() -> Response:
+    """Get all group metadata.
+
+    Returns:
+        JSON response with groups data.
+    """
+    return jsonify(load_groups())
+
+
+@app.route("/api/groups/<group_name>", methods=["PUT"])
+def update_group(group_name: str) -> Response:
+    """Update a group's metadata (icon, etc.).
+
+    Args:
+        group_name: Name of the group to update.
+
+    Returns:
+        JSON response with success status.
+    """
+    data = load_groups()
+    if "groups" not in data:
+        data["groups"] = {}
+
+    if group_name not in data["groups"]:
+        data["groups"][group_name] = {}
+
+    data["groups"][group_name].update(request.json)
+    save_groups(data)
     return jsonify({"success": True})
 
 
@@ -897,32 +1050,58 @@ def discover_apollo_servers() -> Response:
 
 @app.route("/api/probe/<ip>")
 def probe_host(ip: str) -> Response:
-    """Probe a single host for Apollo and get detailed info.
+    """Probe a single host for Apollo instances and get detailed info.
 
-    Checks if Apollo is running and retrieves hardware info via
+    Checks all configured Apollo ports and retrieves hardware info via
     Apollo API and WMI/WinRM.
 
     Args:
         ip: IP address to probe.
 
     Returns:
-        JSON response with apollo_online status and machine info.
+        JSON response with apollo_online status, apollo_instances, and machine info.
     """
     result = {
         "ip": ip,
         "apollo_online": False,
         "hostname": None,
-        "apps": [],
+        "apollo_instances": [],
         "gpu": None,
         "ram": None,
         "os": None,
     }
 
-    # Check if Apollo is running
-    if check_apollo_port(ip):
+    # Check all configured Apollo ports
+    open_ports = check_apollo_ports(ip)
+
+    if open_ports:
         result["apollo_online"] = True
-        info = get_machine_info_apollo(ip)
-        result.update(info)
+
+        # Get info from first responding port for machine-level data
+        first_info = get_machine_info_apollo(ip, open_ports[0])
+        result["hostname"] = first_info.get("hostname")
+        result["gpu"] = first_info.get("gpu")
+        result["ram"] = first_info.get("ram")
+        result["os"] = first_info.get("os")
+        result["cpu"] = first_info.get("cpu")
+
+        # Build apollo_instances array
+        for port in open_ports:
+            port_info = (
+                get_machine_info_apollo(ip, port)
+                if port != open_ports[0]
+                else first_info
+            )
+            instance_name = (
+                port_info.get("instance_name") or f"Display ({port})"
+            )
+            result["apollo_instances"].append(
+                {
+                    "port": port,
+                    "name": instance_name,
+                    "apps": port_info.get("apps", []),
+                }
+            )
 
         # Try WMI for more details
         wmi_info = get_machine_info_wmi(ip)
@@ -1013,12 +1192,25 @@ def download_protocol_handler() -> Response:
 
     Creates a Windows registry file that registers the moonlight://
     URL protocol. The handler is self-contained with embedded PowerShell.
+    Supports optional port parameter for multi-instance Apollo setups.
+
+    URL formats supported:
+    - moonlight://connect/{IP}?app={App} (default port)
+    - moonlight://connect/{IP}?port={PORT}&app={App} (specific port)
 
     Returns:
         Response with .reg file content for download.
     """
-    # Inline PowerShell script embedded in the registry
-    ps_script = "$url = $args[0]; if ($url -match 'moonlight://connect/([^?]+)\\?app=(.+)') { & 'C:\\Program Files\\Moonlight Game Streaming\\Moonlight.exe' stream $matches[1] ([uri]::UnescapeDataString($matches[2])) }"
+    # Inline PowerShell script that handles optional port parameter
+    # URL format: moonlight://connect/{IP}?port={PORT}&app={App} or moonlight://connect/{IP}?app={App}
+    ps_script = (
+        "$url = $args[0]; "
+        "if ($url -match 'moonlight://connect/([^?]+)\\?(?:port=(\\d+)&)?app=(.+)') { "
+        "$ip = $matches[1]; $port = $matches[2]; $app = [uri]::UnescapeDataString($matches[3]); "
+        '$target = if ($port) { "${ip}:${port}" } else { $ip }; '
+        "& 'C:\\Program Files\\Moonlight Game Streaming\\Moonlight.exe' stream $target $app "
+        "}"
+    )
 
     # Build the command line - escape for .reg file format
     command = f'powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -Command "{ps_script}" "%1"'
@@ -1048,6 +1240,32 @@ def download_protocol_handler() -> Response:
     )
 
 
+@app.route("/download/moonlight-handler-uninstall.reg")
+def download_protocol_handler_uninstall() -> Response:
+    """Generate and download a .reg file to uninstall the Moonlight protocol handlers.
+
+    Creates a Windows registry file that removes the moonlight:// and
+    moonlight-dual:// URL protocol registrations.
+
+    Returns:
+        Response with .reg file content for download.
+    """
+    reg_content = """Windows Registry Editor Version 5.00
+
+[-HKEY_CURRENT_USER\\Software\\Classes\\moonlight]
+
+[-HKEY_CURRENT_USER\\Software\\Classes\\moonlight-dual]
+"""
+
+    return Response(
+        reg_content,
+        mimetype="application/x-ms-regedit",
+        headers={
+            "Content-Disposition": "attachment; filename=moonlight-handler-uninstall.reg"
+        },
+    )
+
+
 if __name__ == "__main__":
     # For development only - use waitress for production
-    app.run(debug=False, host="0.0.0.0", port=get_server_port())
+    app.run(debug=True, host="0.0.0.0", port=get_server_port())

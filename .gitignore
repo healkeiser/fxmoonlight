@@ -15,7 +15,7 @@ ENV/
 *.swo
 
 # App data (local storage)
-workstations.json
+data.json
 
 # Config with credentials (copy from config.example.json)
 config.json
@@ -33,6 +33,3 @@ Thumbs.db
 
 # Session cookies
 cookies.txt
-
-# Claude Code
-.claude/

@@ -14,7 +14,7 @@ services:
       - WINRM_PASSWORD=${WINRM_PASSWORD:-}
       - APOLLO_USER=${APOLLO_USER:-}
       - APOLLO_PASSWORD=${APOLLO_PASSWORD:-}
-      # Flask session signing key
-      - SECRET_KEY=${SECRET_KEY:-fxmoonlight-secret-key}
+      # Flask session signing key (optional)
+      - FXMOONLIGHT_SECRET_KEY=${FXMOONLIGHT_SECRET_KEY:-}
     # Optional: Use host network for easier discovery on local subnet
     # network_mode: host

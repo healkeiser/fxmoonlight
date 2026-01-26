@@ -33,9 +33,16 @@
                 <strong>{{ site.name }}</strong>
             </a>
             <div class="d-flex gap-2 flex-wrap">
+                <!-- Client setup actions -->
                 <button class="btn btn-moonlight btn-sm" data-bs-toggle="modal" data-bs-target="#setupModal">
                     <i class="bi bi-gear"></i> Setup
                 </button>
+                <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#uninstallModal">
+                    <i class="bi bi-trash"></i> Uninstall
+                </button>
+                <!-- Separator -->
+                <span class="mx-1"></span>
+                <!-- Workstation actions -->
                 <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#discoverModal">
                     <i class="bi bi-radar"></i> Discover
                 </button>
@@ -52,22 +59,33 @@
             {% if grouped_workstations %}
                 {# Display grouped workstations #}
                 {% for group_name, group_ws in grouped_workstations.items() %}
+                {% set group_id = (group_name or 'ungrouped') | lower | replace(' ', '-') | replace('/', '-') %}
+                {% set group_icon = group_icons.get(group_name, {}).get('icon', 'bi-folder') if group_name else 'bi-folder2-open' %}
                 <div class="workstation-group mb-4">
                     {% if group_name %}
-                    <h5 class="group-header mb-3">
-                        <i class="bi bi-folder me-2"></i>{{ group_name }}
-                        <span class="badge bg-secondary ms-2">{{ group_ws | length }}</span>
+                    <h5 class="group-header mb-3 d-flex align-items-center" data-group="{{ group_name }}">
+                        <span role="button" data-bs-toggle="collapse" data-bs-target="#group-{{ group_id }}" aria-expanded="true" class="flex-grow-1">
+                            <i class="bi bi-chevron-down me-2 collapse-icon"></i>
+                            <i class="bi {{ group_icon }} me-2 group-icon"></i>{{ group_name }}
+                            <span class="badge bg-secondary ms-2">{{ group_ws | length }}</span>
+                        </span>
+                        <button class="btn btn-link btn-sm text-muted group-edit-btn p-0 ms-2" onclick="editGroupIcon('{{ group_name }}')" title="Change icon">
+                            <i class="bi bi-pencil"></i>
+                        </button>
                     </h5>
                     {% else %}
-                    <h5 class="group-header mb-3 text-muted">
-                        <i class="bi bi-folder2-open me-2"></i>Ungrouped
+                    <h5 class="group-header mb-3 text-muted" role="button" data-bs-toggle="collapse" data-bs-target="#group-{{ group_id }}" aria-expanded="true">
+                        <i class="bi bi-chevron-down me-2 collapse-icon"></i>
+                        <i class="bi bi-folder2-open me-2 group-icon"></i>Ungrouped
                         <span class="badge bg-secondary ms-2">{{ group_ws | length }}</span>
                     </h5>
                     {% endif %}
-                    <div class="workstation-grid">
-                        {% for ws in group_ws %}
-                        {% include 'components/workstation-card.html' %}
-                        {% endfor %}
+                    <div class="collapse show" id="group-{{ group_id }}">
+                        <div class="workstation-grid">
+                            {% for ws in group_ws %}
+                            {% include 'components/workstation-card.html' %}
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -92,15 +110,17 @@
 
     <!-- Modals -->
     {% include 'components/modal-setup.html' %}
+    {% include 'components/modal-uninstall.html' %}
     {% include 'components/modal-discover.html' %}
     {% include 'components/modal-edit.html' %}
     {% include 'components/modal-confirm.html' %}
+    {% include 'components/icon-picker.html' %}
 
     <!-- Toast Container -->
     <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
 
     <!-- Footer -->
-    <footer class="footer mt-auto py-3">
+    <footer class="footer">
         <div class="container text-center">
             <span class="text-muted">
                 Built with <i class="bi bi-heart-fill text-danger"></i> by <a href="https://github.com/healkeiser" target="_blank" rel="noopener">Valentin Beaumont</a>
