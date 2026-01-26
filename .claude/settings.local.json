@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(curl:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File:*)",
+      "Bash(powershell -Command \"& ''C:\\\\Program Files\\\\Moonlight Game Streaming\\\\Moonlight.exe'' --help 2>&1 | Select-Object -First 30\")",
+      "Bash(powershell -Command \"& ''C:\\\\Program Files\\\\Moonlight Game Streaming\\\\Moonlight.exe'' stream --help 2>&1\")",
+      "Bash(powershell -Command:*)",
+      "Bash(del \"c:\\\\Users\\\\valen\\\\OneDrive\\\\Documents\\\\GitHub\\\\fxmoonlight\\\\scripts\\\\moonlight-handler.ps1\")"
+    ]
+  }
+}

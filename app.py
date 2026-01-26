@@ -12,6 +12,7 @@ import socket
 import ssl
 import urllib.request
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 # Third-party
@@ -1191,31 +1192,21 @@ def download_protocol_handler() -> Response:
     """Generate and download the Moonlight protocol handler .reg file.
 
     Creates a Windows registry file that registers the moonlight://
-    URL protocol. The handler is self-contained with embedded PowerShell.
-    Supports optional port parameter for multi-instance Apollo setups.
+    URL protocol. Points to the Invoke-MoonlightStream.ps1 script.
 
-    URL formats supported:
-    - moonlight://connect/{IP}?app={App} (default port)
-    - moonlight://connect/{IP}?port={PORT}&app={App} (specific port)
+    URL format: moonlight://connect/{IP}?app={App}
 
     Returns:
         Response with .reg file content for download.
     """
-    # Inline PowerShell script that handles optional port parameter
-    # URL format: moonlight://connect/{IP}?port={PORT}&app={App} or moonlight://connect/{IP}?app={App}
-    ps_script = (
-        "$url = $args[0]; "
-        "if ($url -match 'moonlight://connect/([^?]+)\\?(?:port=(\\d+)&)?app=(.+)') { "
-        "$ip = $matches[1]; $port = $matches[2]; $app = [uri]::UnescapeDataString($matches[3]); "
-        '$target = if ($port) { "${ip}:${port}" } else { $ip }; '
-        "& 'C:\\Program Files\\Moonlight Game Streaming\\Moonlight.exe' stream $target $app "
-        "}"
-    )
+    # Get the path to the handler script
+    script_path = Path(__file__).parent / "scripts" / "Invoke-MoonlightStream.ps1"
+    script_path_str = str(script_path.resolve())
 
-    # Build the command line - escape for .reg file format
-    command = f'powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -Command "{ps_script}" "%1"'
-    # Escape backslashes for .reg format
-    command_escaped = command.replace("\\", "\\\\")
+    # Build command: powershell runs the script with the URL as argument
+    command = f'powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File "{script_path_str}" "%1"'
+    # Escape backslashes and double quotes for .reg format
+    command_escaped = command.replace("\\", "\\\\").replace('"', '\\"')
 
     reg_content = f"""Windows Registry Editor Version 5.00
 

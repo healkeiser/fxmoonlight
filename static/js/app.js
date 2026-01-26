@@ -342,16 +342,10 @@ async function putJSON(url, data) {
  * Launch a Moonlight stream with proper URL encoding
  * @param {string} ip - Host IP address
  * @param {string} app - Application name to stream
- * @param {number} [port] - Optional Apollo port (for multi-instance setups)
  */
-function launchMoonlight(ip, app, port) {
+function launchMoonlight(ip, app) {
     showToast('Launching', `Connecting to ${app}...`, 'info', 3000);
-    let url;
-    if (port) {
-        url = `moonlight://connect/${ip}?port=${port}&app=${encodeURIComponent(app)}`;
-    } else {
-        url = `moonlight://connect/${ip}?app=${encodeURIComponent(app)}`;
-    }
+    const url = `moonlight://connect/${ip}?app=${encodeURIComponent(app)}`;
     window.location.href = url;
 }
 
