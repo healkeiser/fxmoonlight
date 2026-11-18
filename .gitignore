@@ -33,3 +33,6 @@ Thumbs.db
 
 # Session cookies
 cookies.txt
+
+# Claude Code: per-machine settings (memory location, local permissions)
+.claude/settings.local.json
